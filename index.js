@@ -1,5 +1,4 @@
 require("dotenv").config();
-
 const { Client, GatewayIntentBits } = require("discord.js");
 const { Octokit } = require("@octokit/rest");
 const axios = require("axios");
@@ -25,21 +24,25 @@ const octokit = new Octokit({
 
 const OWNER = process.env.GITHUB_OWNER;
 const REPO = process.env.GITHUB_REPO;
-
-// ID del canal permitido
 const ALLOWED_CHANNEL = "1477447506089607248";
 
-client.once("clientReady", () => {
+// Set para evitar procesar el mismo mensaje dos veces
+const processedMessages = new Set();
+
+client.once("ready", () => {
   console.log(`✅ Bot conectado como ${client.user.tag}`);
 });
 
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
-
-  // Solo funciona en tu canal específico
+  if (message.webhookId) return;
   if (message.channel.id !== ALLOWED_CHANNEL) return;
-
   if (message.attachments.size === 0) return;
+
+  // Evitar duplicados
+  if (processedMessages.has(message.id)) return;
+  processedMessages.add(message.id);
+  setTimeout(() => processedMessages.delete(message.id), 10000);
 
   const attachment = message.attachments.first();
 
